@@ -359,7 +359,7 @@ validateEmail({ email: "someoneelse@gmail.com" })
 
 <p><strong>POST request:</strong> Queries are sent in the body as JSON.</p>
 <pre>
-curl -X POST https://email-validator-delta.vercel.app//graphql \
+curl -X POST https://email-validator-delta.vercel.app/graphql \
   -H "Content-Type: application/json" \
   -d '{"query": "query { validateEmail(email: \"someoneelse@gmail.com\") }"}'
 </pre>
