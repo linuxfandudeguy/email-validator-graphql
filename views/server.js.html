@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: server.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: server.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/** 
+ * @module 
+ * @fileoverview This file sets up a GraphQL API server using Express and provides
+ * an endpoint for interacting with GraphQL. The API exposes a query to validate email addresses.
+ * 
+ * Usage:
+ * - To make a GET request, query the `/graphql` endpoint with a URL-encoded query string.
+ * - To make a POST request, send a JSON object containing the query to the `/graphql` endpoint.
+ */
+
+const express = require('express');
+const { createHandler } = require('graphql-http/lib/use/express');
+const { makeExecutableSchema } = require('@graphql-tools/schema');
+const { loadSchemaSync } = require('@graphql-tools/load');
+const { GraphQLFileLoader } = require('@graphql-tools/graphql-file-loader');
+const validator = require('validator');
+const path = require('path');
+
+// Load the schema from the `schema.graphql` file
+const typeDefs = loadSchemaSync(path.join(__dirname, 'schema.graphql'), {
+  loaders: [new GraphQLFileLoader()],
+});
+
+// Resolvers for the GraphQL API
+/**
+ * @function
+ * @description Validates the given email address.
+ * 
+ * @param {Object} _ - Parent object (unused).
+ * @param {Object} args - Arguments passed to the query.
+ * @param {string} args.email - The email address to validate.
+ * @returns {string} A message indicating whether the email is valid or invalid.
+ * 
+ * &lt;pre>
+ * // Usage:
+ * validateEmail({ email: "someoneelse@gmail.com" })
+ * // Returns: "The email 'someoneelse@gmail.com' is valid."
+ * &lt;/pre>
+ */
+const resolvers = {
+  Query: {
+    validateEmail: (_, { email }) => {
+      return validator.isEmail(email)
+        ? `The email '${email}' is valid.`
+        : `The email '${email}' is invalid.`;
+    },
+  },
+};
+
+// Create the executable schema
+const schema = makeExecutableSchema({ typeDefs, resolvers });
+
+const app = express();
+
+// Serve all static files in the `views` folder
+app.use(express.static(path.join(__dirname, 'views')));
+
+/**
+ * @function
+ * @description This function sets up the `/graphql` endpoint to handle both GET and POST requests for email validation.
+ * 
+ * &lt;p>&lt;strong>GET request:&lt;/strong> Queries are sent as URL parameters.&lt;/p>
+ * &lt;pre>
+ * /graphql?query=query%20%7B%0A%20%20validateEmail(email%3A%20%22someoneelse%40gmail.com%22)%0A%7D%0A
+ * &lt;/pre>
+ * &lt;p>This sends a query to validate the email &lt;code>someoneelse@gmail.com&lt;/code>.&lt;/p>
+ * 
+ * &lt;p>&lt;strong>POST request:&lt;/strong> Queries are sent in the body as JSON.&lt;/p>
+ * &lt;pre>
+ * curl -X POST http://localhost:4000/graphql \
+ *   -H "Content-Type: application/json" \
+ *   -d '{"query": "query { validateEmail(email: \"someoneelse@gmail.com\") }"}'
+ * &lt;/pre>
+ * &lt;p>The response will contain whether the email is valid or not.&lt;/p>
+ *  
+ *  &lt;iframe src="/graphiql" width="100%" height="600px">&lt;/iframe>
+ *
+ * &lt;p>For more on how GraphQL works, see &lt;a href="https://graphql.org/">GraphQL Official Documentation&lt;/a>.&lt;/p>
+ */
+function setupGraphQLEndpoint() {
+  app.use(
+    '/graphql',
+    createHandler({
+      schema,
+      graphiql: false, // GraphQL API endpoint with no GraphiQL interface enabled
+    })
+  );
+}
+
+/**
+ * @function
+ * @description This function serves the GraphiQL interface at the `/graphiql` endpoint.
+ * 
+ * &lt;p>This endpoint provides a user-friendly interface to interact with the GraphQL API.&lt;/p>
+ */
+function setupGraphiQL() {
+  app.get('/graphiql', (req, res) => {
+    // Serve a custom HTML page for GraphiQL interface
+    res.send(`
+      &lt;!DOCTYPE html>
+      &lt;html>
+        &lt;head>
+          &lt;title>GraphiQL&lt;/title>
+          &lt;script src="../react.development.js">&lt;/script>
+          &lt;script src="../react-dom.development.js">&lt;/script>
+          &lt;script src="../graphiql.min.js">&lt;/script>
+          &lt;link rel="stylesheet" href="../graphiql.min.css" />
+        &lt;/head>
+        &lt;body style="margin: 0;">
+          &lt;div id="graphiql" style="height: 100vh;">&lt;/div>
+          &lt;script>
+            const graphQLFetcher = (graphQLParams) => {
+              return fetch('/graphql', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(graphQLParams),
+              })
+              .then((response) => response.json())
+              .catch((error) => error);
+            };
+
+            ReactDOM.render(
+              React.createElement(GraphiQL, { fetcher: graphQLFetcher }),
+              document.getElementById('graphiql')
+            );
+          &lt;/script>
+        &lt;/body>
+      &lt;/html>
+    `);
+  });
+}
+
+// Call the functions to set up the API and GraphiQL
+setupGraphQLEndpoint();
+setupGraphiQL();
+
+const PORT = 4000;
+
+app.listen(PORT, () => {
+  console.log(`🚀 Server running at http://localhost:${PORT}`);
+  console.log(`Access the GraphQL API at http://localhost:${PORT}/graphql`);
+  console.log(`Access the GraphiQL interface at http://localhost:${PORT}/graphiql`);
+});
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#resolvers">resolvers</a></li><li><a href="global.html#setupGraphQLEndpoint">setupGraphQLEndpoint</a></li><li><a href="global.html#setupGraphiQL">setupGraphiQL</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Sun Jan 12 2025 17:48:53 GMT-0500 (Eastern Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

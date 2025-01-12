@@ -1,0 +1,15 @@
+{
+  "source": {
+    "include": ["server.js"],
+    "exclude": ["node_modules"]
+  },
+  "opts": {
+    "destination": "./views", 
+    "recurse": true
+  },
+  "plugins": [],
+  "templates": {
+    "cleverLinks": true,
+    "monospaceLinks": true
+  }
+}

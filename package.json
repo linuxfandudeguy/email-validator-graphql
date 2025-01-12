@@ -1,0 +1,27 @@
+{
+  "name": "graphql-email-api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "dev": "nodemon server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@9.15.2+sha512.93e57b0126f0df74ce6bff29680394c0ba54ec47246b9cf321f0121d8d9bb03f750a705f24edc3c1180853afd7c2c3b94196d0a3d53d3e069d9e2793ef11f321",
+  "dependencies": {
+    "@graphql-tools/graphql-file-loader": "^8.0.11",
+    "@graphql-tools/load": "^8.0.12",
+    "@graphql-tools/schema": "^10.0.16",
+    "express": "^4.21.2",
+    "graphiql": "^3.8.3",
+    "graphql": "^16.10.0",
+    "graphql-http": "^1.22.3",
+    "jsdoc": "^4.0.4",
+    "validator": "^13.12.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  }
+}
